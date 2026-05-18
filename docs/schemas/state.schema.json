@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkState",
+  "description": "현재 진행 중인 한 상품 작업의 Stage·승인 이력·stale 플래그. {product}/working/state.json 위치.",
+  "type": "object",
+  "required": [
+    "product",
+    "client_id",
+    "current_stage",
+    "approved",
+    "stale",
+    "created_at",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "product": {
+      "type": "string",
+      "description": "상품 폴더명 (예: SMP-23기, 에스테틱샵-4기)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "클라이언트 식별자 (profile.json의 client_id와 일치)"
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": ["0", "1a", "1b", "1c", "2", "3", "4", "completed"],
+      "description": "현재 진행 중인 Stage 또는 내부 단계"
+    },
+    "approved": {
+      "type": "array",
+      "description": "Nova가 /approve 한 단계 이력. 순서 보존.",
+      "items": {
+        "type": "object",
+        "required": ["stage", "approved_at"],
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": ["0", "1a", "1b", "1c", "2", "3", "4"],
+            "description": "승인된 단계"
+          },
+          "approved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "description": "Nova가 남긴 메모 (선택)"
+          }
+        }
+      }
+    },
+    "stale": {
+      "type": "array",
+      "description": "/revise 또는 /redo 후 무효화된 산출물 파일명 목록. 이 항목이 있으면 해당 단계 이후는 재실행 필요.",
+      "items": {
+        "type": "string",
+        "description": "예: 01c_paid_full.json, 02_hook.json"
+      }
+    },
+    "web_research": {
+      "type": "object",
+      "description": "web search 호출 제한 상태. /web-research approve 후 활성화.",
+      "additionalProperties": false,
+      "properties": {
+        "approved": {
+          "type": "boolean",
+          "default": false
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "calls_used": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "calls_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "Stage당 최대 호출 수. SPEC §1.5."
+        },
+        "active_stage": {
+          "type": "string",
+          "description": "승인이 유효한 Stage. 다른 Stage에서는 재승인 필요."
+        }
+      }
+    },
+    "working_files": {
+      "type": "object",
+      "description": "각 working/*.json 파일의 생성 여부 추적.",
+      "additionalProperties": false,
+      "properties": {
+        "00_context": { "$ref": "#/$defs/file_status" },
+        "01a_persona": { "$ref": "#/$defs/file_status" },
+        "01b_promise": { "$ref": "#/$defs/file_status" },
+        "01c_paid_full": { "$ref": "#/$defs/file_status" },
+        "02_hook": { "$ref": "#/$defs/file_status" },
+        "03_free_full": { "$ref": "#/$defs/file_status" }
+      }
+    },
+    "output_files": {
+      "type": "object",
+      "description": "각 output/* 파일의 생성 여부 추적.",
+      "additionalProperties": false,
+      "properties": {
+        "paid_plan_json": { "$ref": "#/$defs/file_status" },
+        "free_plan_json": { "$ref": "#/$defs/file_status" },
+        "paid_plan_notion_md": { "$ref": "#/$defs/file_status" },
+        "free_plan_notion_md": { "$ref": "#/$defs/file_status" },
+        "decisions_md": { "$ref": "#/$defs/file_status" }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "/start product-planning 실행 시각"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+
+  "$defs": {
+    "file_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exists": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "schema_validated": { "type": "boolean" },
+        "is_stale": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

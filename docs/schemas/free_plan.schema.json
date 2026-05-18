@@ -1,0 +1,262 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FreePlan",
+  "description": "무료 웨비나 기획안 8개 항목. 유료 역산 설계. target_problem은 paid_plan과 동일 페르소나(1A 출력) 재사용. downstream(웨비나SMS) 호환. §E.5.",
+  "type": "object",
+  "required": [
+    "meta",
+    "webinar_name",
+    "concept",
+    "target_problem",
+    "curriculum",
+    "instructor_intro",
+    "hook",
+    "social_proof",
+    "faq"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "산출물 메타데이터",
+      "required": [
+        "product",
+        "client_id",
+        "compiled_at",
+        "source_files",
+        "paid_plan_ref"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "product": { "type": "string" },
+        "client_id": { "type": "string" },
+        "compiled_at": { "type": "string", "format": "date-time" },
+        "source_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "컴파일에 사용된 working/*.json 목록"
+        },
+        "paid_plan_ref": {
+          "type": "string",
+          "description": "역산 기준이 된 paid_plan 파일 경로. 유료 역산 설계 명시."
+        },
+        "schema_version": { "type": "string", "default": "1.0" }
+      }
+    },
+
+    "webinar_name": {
+      "type": "string",
+      "description": "항목 0: 웨비나명 (제목)"
+    },
+
+    "concept": {
+      "type": "object",
+      "description": "항목 1: 전체 컨셉 — 무료 버전 약속 + 결과이미지. 유료 promise_strength보다 낮은 강도로 조정.",
+      "required": [
+        "tagline",
+        "result_image",
+        "promise",
+        "promise_strength",
+        "desire_category"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tagline": {
+          "type": "string",
+          "description": "웨비나 핵심 한 줄 카피"
+        },
+        "result_image": {
+          "type": "string",
+          "description": "웨비나 참석 후 얻을 수 있는 결과·상태 이미지"
+        },
+        "promise": {
+          "type": "string",
+          "description": "무료 버전 약속 문장. 유료 약속 강도를 초과하면 안 됨."
+        },
+        "promise_strength": {
+          "type": "string",
+          "enum": ["help", "specific_result"],
+          "description": "무료 웨비나는 guarantee 사용 불가. help 또는 specific_result만."
+        },
+        "desire_category": {
+          "type": "string",
+          "enum": ["time", "money", "health", "relationship"],
+          "description": "유료 기획안의 desire_category와 일치해야 함"
+        }
+      }
+    },
+
+    "target_problem": {
+      "type": "object",
+      "description": "항목 2: 타깃 문제 정의. paid_plan의 target_problem(1A 출력)을 그대로 재사용. 수정 금지.",
+      "required": ["persona", "painpoints", "reused_from"],
+      "additionalProperties": false,
+      "properties": {
+        "reused_from": {
+          "type": "string",
+          "description": "출처 명시 필수. 예: working/01a_persona.json"
+        },
+        "persona": {
+          "type": "object",
+          "required": ["summary", "demographics", "situation"],
+          "additionalProperties": false,
+          "properties": {
+            "summary": { "type": "string" },
+            "demographics": { "type": "string" },
+            "situation": { "type": "string" },
+            "psychographics": { "type": "string" }
+          }
+        },
+        "painpoints": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["who", "situation", "emotion", "root_cause"],
+            "additionalProperties": false,
+            "properties": {
+              "who": { "type": "string" },
+              "situation": { "type": "string" },
+              "emotion": { "type": "string" },
+              "root_cause": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "curriculum": {
+      "type": "object",
+      "description": "항목 3: 웨비나 커리큘럼. 60~90분 분량. 가치 분배표(02_hook) 준수 — 유료 핵심 가치를 무료에 전부 노출 금지.",
+      "required": ["total_duration_min", "modules", "value_distribution_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "total_duration_min": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 90,
+          "description": "총 진행 시간(분). 60~90분."
+        },
+        "value_distribution_ref": {
+          "type": "string",
+          "description": "출처 명시 필수. 예: working/02_hook.json. 분배표 위반 시 schema-validator 통과 불가."
+        },
+        "modules": {
+          "type": "array",
+          "minItems": 3,
+          "description": "세션 모듈 목록. 최소 3개.",
+          "items": {
+            "type": "object",
+            "required": [
+              "order",
+              "title",
+              "description",
+              "duration_min",
+              "exposure_type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "order": { "type": "integer" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "duration_min": { "type": "integer", "minimum": 1 },
+              "exposure_type": {
+                "type": "string",
+                "enum": ["free_expose", "paid_only_hint"],
+                "description": "free_expose: 무료 공개 / paid_only_hint: 언급만, 본론은 유료에서"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "instructor_intro": {
+      "type": "object",
+      "description": "항목 4: 강사 소개 + 신뢰 구축. profile.json instructor 필드 기반.",
+      "required": ["bio_short", "credibility_points"],
+      "additionalProperties": false,
+      "properties": {
+        "bio_short": {
+          "type": "string",
+          "description": "웨비나용 한 문장 강사 소개"
+        },
+        "credibility_points": {
+          "type": "array",
+          "minItems": 2,
+          "description": "신뢰 포인트 2개 이상 (수치·수상·사례 등)",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "hook": {
+      "type": "object",
+      "description": "항목 5: Hook — 무료 → 유료 연결고리. Nova가 02_hook.json에서 선택한 확정본.",
+      "required": ["copy", "transition_logic", "source_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "copy": {
+          "type": "string",
+          "description": "Hook 카피 한 줄 (무료→유료 자연스러운 전환 문장)"
+        },
+        "transition_logic": {
+          "type": "string",
+          "description": "왜 이 Hook이 유료로 자연스럽게 넘어가는지 논리"
+        },
+        "source_ref": {
+          "type": "string",
+          "description": "출처 명시 필수. 예: working/02_hook.json — 후보 중 Nova 선택 확정본"
+        }
+      }
+    },
+
+    "social_proof": {
+      "type": "array",
+      "description": "항목 6: 사회적 증거. 1C에서 선별된 consent 통과 사례 재사용. 최소 2건.",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "summary", "result", "consent", "reused_from"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "summary": { "type": "string" },
+          "result": { "type": "string" },
+          "reused_from": {
+            "type": "string",
+            "description": "출처 명시 필수. 예: working/01c_paid_full.json"
+          },
+          "consent": {
+            "type": "object",
+            "required": ["granted", "scope"],
+            "additionalProperties": false,
+            "properties": {
+              "granted": { "type": "boolean", "enum": [true] },
+              "scope": {
+                "type": "string",
+                "enum": ["full", "anonymized", "excerpt_only"]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "faq": {
+      "type": "array",
+      "description": "항목 7: FAQ. 웨비나 참석 의구심 제거. 최소 3개.",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["question", "answer"],
+        "additionalProperties": false,
+        "properties": {
+          "question": { "type": "string" },
+          "answer": { "type": "string" }
+        }
+      }
+    }
+  }
+}

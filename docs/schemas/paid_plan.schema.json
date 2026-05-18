@@ -1,0 +1,305 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaidPlan",
+  "description": "유료 상품 기획안 8개 항목. CLAUDE.md 기본 구조 준수. downstream(랜딩·광고·강의안) 호환. §E.5.",
+  "type": "object",
+  "required": [
+    "meta",
+    "course_name",
+    "concept",
+    "usp",
+    "target_problem",
+    "solution",
+    "pricing",
+    "social_proof",
+    "faq"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "산출물 메타데이터",
+      "required": ["product", "client_id", "compiled_at", "source_files"],
+      "additionalProperties": false,
+      "properties": {
+        "product": { "type": "string" },
+        "client_id": { "type": "string" },
+        "compiled_at": { "type": "string", "format": "date-time" },
+        "source_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "컴파일에 사용된 working/*.json 목록"
+        },
+        "schema_version": { "type": "string", "default": "1.0" }
+      }
+    },
+
+    "course_name": {
+      "type": "string",
+      "description": "항목 0: 과정명"
+    },
+
+    "concept": {
+      "type": "object",
+      "description": "항목 1: 전체 컨셉 및 타깃 고객에게 약속하는 결과이미지",
+      "required": [
+        "tagline",
+        "result_image",
+        "promise",
+        "promise_strength",
+        "desire_category"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tagline": {
+          "type": "string",
+          "description": "핵심 한 줄 카피"
+        },
+        "result_image": {
+          "type": "string",
+          "description": "수강 후 타깃이 갖게 될 결과·상태 이미지 (구체적 장면 묘사)"
+        },
+        "promise": {
+          "type": "string",
+          "description": "약속 문장. Nova가 1B에서 선택한 확정본."
+        },
+        "promise_strength": {
+          "type": "string",
+          "enum": ["help", "specific_result", "guarantee"],
+          "description": "help: 도움 제공 / specific_result: 구체 결과 약속 / guarantee: 성과 보장"
+        },
+        "desire_category": {
+          "type": "string",
+          "enum": ["time", "money", "health", "relationship"],
+          "description": "결과가 매핑된 욕망 카테고리. §Stage 1B."
+        },
+        "core_concept_line": {
+          "type": "string",
+          "description": "캠페인 전체 카피 기준선. 광고·랜딩·CRM 공통 사용. Nova가 1C에서 선택."
+        },
+        "core_concept_components": {
+          "type": "object",
+          "description": "core_concept_line 구성 재료. 1C에서 생성.",
+          "required": ["problem", "method", "duration", "label"],
+          "additionalProperties": false,
+          "properties": {
+            "problem": {
+              "type": "string",
+              "description": "타깃 핵심 문제 1줄 압축"
+            },
+            "method": {
+              "type": "string",
+              "description": "방법론/워크플로 이름"
+            },
+            "duration": {
+              "type": "string",
+              "description": "기간 (예: '6주', '30일')"
+            },
+            "label": {
+              "type": "string",
+              "description": "법칙/공식/비법/노하우 이름. Nova 선택본."
+            }
+          }
+        }
+      }
+    },
+
+    "usp": {
+      "type": "object",
+      "description": "항목 2: 핵심 USP + 2-1 시장 내 포지셔닝",
+      "required": ["core_usp", "positioning"],
+      "additionalProperties": false,
+      "properties": {
+        "core_usp": {
+          "type": "string",
+          "description": "경쟁자와의 차별점 한 문장"
+        },
+        "positioning": {
+          "type": "string",
+          "description": "항목 2-1: 시장 내 포지셔닝 서술"
+        }
+      }
+    },
+
+    "target_problem": {
+      "type": "object",
+      "description": "항목 3: 타깃 문제 정의. 1A 출력(01a_persona.json) 그대로. free_plan도 이 필드를 그대로 재사용.",
+      "required": ["persona", "painpoints"],
+      "additionalProperties": false,
+      "properties": {
+        "persona": {
+          "type": "object",
+          "required": ["summary", "demographics", "situation"],
+          "additionalProperties": false,
+          "properties": {
+            "summary": { "type": "string", "description": "한 줄 페르소나" },
+            "demographics": {
+              "type": "string",
+              "description": "인구통계 (나이·직업·지역 등)"
+            },
+            "situation": { "type": "string", "description": "현재 상황·심리" },
+            "psychographics": {
+              "type": "string",
+              "description": "가치관·동기 (선택)"
+            }
+          }
+        },
+        "painpoints": {
+          "type": "array",
+          "minItems": 3,
+          "description": "페인포인트 최소 3개. 각각 누구의·상황·결과/감정·진짜 원인 명시.",
+          "items": {
+            "type": "object",
+            "required": ["who", "situation", "emotion", "root_cause"],
+            "additionalProperties": false,
+            "properties": {
+              "who": { "type": "string", "description": "누구의 문제인가" },
+              "situation": { "type": "string", "description": "어떤 상황에서" },
+              "emotion": { "type": "string", "description": "어떤 결과·감정" },
+              "root_cause": {
+                "type": "string",
+                "description": "진짜 원인 (표층 진술 금지)"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "solution": {
+      "type": "object",
+      "description": "항목 4: 해결책 — 상품 개요 + 로드맵 + 커리큘럼 + 추가 혜택",
+      "required": ["overview", "roadmap", "curriculum", "bonus_materials"],
+      "additionalProperties": false,
+      "properties": {
+        "overview": {
+          "type": "string",
+          "description": "상품 개요: 무엇으로 구성돼 있는지, 무엇을 주는지"
+        },
+        "roadmap": {
+          "type": "string",
+          "description": "수강 후 진행되는 로드맵 (솔루션에 해당하는 흐름)"
+        },
+        "curriculum": {
+          "type": "array",
+          "minItems": 4,
+          "description": "커리큘럼 모듈. 최소 4개.",
+          "items": {
+            "type": "object",
+            "required": ["module", "title", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "module": { "type": "integer", "description": "모듈 번호" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "duration": {
+                "type": "string",
+                "description": "예: 2시간, 1주차"
+              }
+            }
+          }
+        },
+        "bonus_materials": {
+          "type": "array",
+          "minItems": 1,
+          "description": "추가 혜택 자료 목록. 최소 1개.",
+          "items": {
+            "type": "object",
+            "required": ["title", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "asset_id": {
+                "type": "string",
+                "description": "profile.json core_assets의 id 참조 (선택)"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "pricing": {
+      "type": "object",
+      "description": "항목 5: 가격 안내 — 5-1 시장 비교 + 5-2 총 인지 가치 + 5-3 공개 가격",
+      "required": [
+        "market_comparison",
+        "total_perceived_value",
+        "public_price"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "market_comparison": {
+          "type": "string",
+          "description": "항목 5-1: 유사 상품과의 시장 가격 비교 및 이 상품이 더 나은 선택인 이유"
+        },
+        "total_perceived_value": {
+          "type": "number",
+          "minimum": 0,
+          "description": "항목 5-2: 총 인지 가치 (원)"
+        },
+        "public_price": {
+          "type": "number",
+          "minimum": 0,
+          "description": "항목 5-3: 공개 가격 (원). Nova가 1B에서 선택한 확정본."
+        },
+        "currency": {
+          "type": "string",
+          "default": "KRW"
+        },
+        "pricing_notes": {
+          "type": "string",
+          "description": "가격 결정 근거 메모 (decisions.md에도 기록됨)"
+        }
+      }
+    },
+
+    "social_proof": {
+      "type": "array",
+      "description": "항목 6: 사회적 증거. consent 통과 사례만. 최소 3건.",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "summary", "result", "consent"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "summary": { "type": "string", "description": "사례 요약 (가공 후)" },
+          "result": {
+            "type": "string",
+            "description": "구체적 결과 수치 또는 변화"
+          },
+          "consent": {
+            "type": "object",
+            "required": ["granted", "scope"],
+            "additionalProperties": false,
+            "properties": {
+              "granted": { "type": "boolean", "enum": [true] },
+              "scope": {
+                "type": "string",
+                "enum": ["full", "anonymized", "excerpt_only"]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "faq": {
+      "type": "array",
+      "description": "항목 7: FAQ. 의구심 제거 장치. 최소 5개, 최대 8개.",
+      "minItems": 5,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["question", "answer"],
+        "additionalProperties": false,
+        "properties": {
+          "question": { "type": "string" },
+          "answer": { "type": "string" }
+        }
+      }
+    }
+  }
+}

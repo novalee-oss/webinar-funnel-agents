@@ -1,0 +1,327 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClientProfile",
+  "description": "클라이언트 누적 컨텍스트. 모든 상품·단계가 공유하는 횡단 자산. profile-io 스킬이 읽기·쓰기·검증.",
+  "type": "object",
+  "required": [
+    "client_id",
+    "updated_at",
+    "instructor",
+    "revenue_target",
+    "core_assets"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "클라이언트 식별자 (예: wuduri, patientfunnel, lulueffect)"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "클라이언트 표시명"
+    },
+    "domain": {
+      "type": "string",
+      "description": "비즈니스 도메인 (예: 두피문신, 에스테틱, 의료)"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "마지막 업데이트 ISO 8601"
+    },
+
+    "instructor": {
+      "type": "object",
+      "description": "강사 프로필. 비어선 안 되는 필수 필드.",
+      "required": ["name", "expertise"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "expertise": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "전문 분야 목록"
+        },
+        "credentials": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "자격증·경력·수상 등"
+        },
+        "bio_short": {
+          "type": "string",
+          "description": "한 문장 소개 (카피에 그대로 쓸 수 있는 형태)"
+        },
+        "bio_full": {
+          "type": "string",
+          "description": "상세 소개"
+        },
+        "visual_metaphor": {
+          "type": "string",
+          "description": "브랜드 비주얼 메타포·프레임 (예: 한라산 3단계 성장)"
+        }
+      }
+    },
+
+    "revenue_target": {
+      "type": "object",
+      "description": "매출 목표. 비어선 안 되는 필수 필드.",
+      "required": ["amount", "currency", "period"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "default": "KRW"
+        },
+        "period": {
+          "type": "string",
+          "description": "예: 2025-Q3, 24기, 단일 캠페인"
+        }
+      }
+    },
+
+    "commission_rate": {
+      "type": "number",
+      "description": "로켓런칭 수수료율 (%). 계약서 기준. revenue-checkpoint가 읽고, 최초 입력 시 저장.",
+      "minimum": 0,
+      "maximum": 100
+    },
+
+    "simulation_rounds": {
+      "type": "array",
+      "description": "회차별 매출 시뮬레이션 이력. revenue-checkpoint가 기록, retrospective-linker가 actual 채움.",
+      "items": {
+        "type": "object",
+        "required": ["round", "simulated_at"],
+        "additionalProperties": false,
+        "properties": {
+          "round": {
+            "type": "string",
+            "description": "회차 식별자 (예: 8기, 2025-Q3)"
+          },
+          "product_name": { "type": "string" },
+          "simulated_at": { "type": "string", "format": "date" },
+          "price_chosen": {
+            "type": "number",
+            "description": "Stage 1B에서 Nova가 선택한 최종 객단가"
+          },
+          "revenue_target": {
+            "type": "number",
+            "description": "이번 회차 목표 매출 (원)"
+          },
+          "recommended_scenario": {
+            "type": "string",
+            "description": "시뮬레이션 결과 기준 권장 시나리오 라벨 (예: B_기본)"
+          },
+          "actual": {
+            "type": "object",
+            "description": "실제 결과. 회고 완료 후 retrospective-linker가 채움.",
+            "additionalProperties": false,
+            "properties": {
+              "revenue": { "type": "number" },
+              "buyers": { "type": "number" },
+              "attendance_rate": { "type": "number" },
+              "payment_cvr": { "type": "number" },
+              "recorded_at": { "type": "string", "format": "date" }
+            }
+          }
+        }
+      }
+    },
+
+    "core_assets": {
+      "type": "array",
+      "description": "핵심 자산 인벤토리. 비어선 안 되는 필수 필드. 최소 3개.",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "case",
+              "method",
+              "framework",
+              "content",
+              "network",
+              "tool",
+              "other"
+            ]
+          },
+          "description": { "type": "string" },
+          "consent": { "$ref": "#/$defs/consent_meta" }
+        }
+      }
+    },
+
+    "tone_guide": {
+      "type": "object",
+      "description": "클라이언트 톤 가이드. copy-linter와 에이전트가 참조.",
+      "additionalProperties": false,
+      "properties": {
+        "preferred_terms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "선호 어휘 목록"
+        },
+        "forbidden_term_categories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "금기어 카테고리 (상세 사전은 lexicon/forbidden-terms.json)"
+        },
+        "style_notes": {
+          "type": "string",
+          "description": "직설·전문가·친근 등 톤 가이드 메모"
+        }
+      }
+    },
+
+    "domain_constraints": {
+      "type": "array",
+      "description": "도메인 규제·법적 리스크 목록 (예: 의료법 광고 가이드)",
+      "items": {
+        "type": "object",
+        "required": ["type", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "예: medical_law, financial_reg, platform_policy"
+          },
+          "description": { "type": "string" },
+          "ref_doc": {
+            "type": "string",
+            "description": "클라이언트 docs/ 내 참조 파일 상대 경로"
+          }
+        }
+      }
+    },
+
+    "past_plans": {
+      "type": "array",
+      "description": "이전 기획서 링크 목록. Stage 0에서 참조.",
+      "items": {
+        "type": "object",
+        "required": ["product_name", "created_at"],
+        "additionalProperties": false,
+        "properties": {
+          "product_name": { "type": "string" },
+          "created_at": { "type": "string", "format": "date" },
+          "notion_page_id": { "type": "string" },
+          "local_path": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+
+    "decision_history": {
+      "type": "array",
+      "description": "단계 횡단 자산. 미래 단계(랜딩·강의안·회고)가 읽는 페르소나·약속·가격·hook 결정 이력. §E.5.",
+      "items": {
+        "type": "object",
+        "required": ["product_name", "decided_at"],
+        "additionalProperties": false,
+        "properties": {
+          "product_name": { "type": "string" },
+          "decided_at": { "type": "string", "format": "date" },
+          "persona_summary": { "type": "string" },
+          "promise_chosen": { "type": "string" },
+          "price_chosen": { "type": "number" },
+          "hook_summary": { "type": "string" }
+        }
+      }
+    },
+
+    "retrospective_insights": {
+      "type": "array",
+      "description": "회고 에이전트가 추출한 회차별 다음 개선 과제. retrospective-linker가 기록. context-loader가 Stage 0에서 읽어 기획에 반영.",
+      "items": {
+        "type": "object",
+        "required": ["round", "recorded_at", "action_items"],
+        "additionalProperties": false,
+        "properties": {
+          "round": {
+            "type": "string",
+            "description": "회차 식별자 (예: 8기, 2025-Q3)"
+          },
+          "product_name": {
+            "type": "string",
+            "description": "해당 회차 상품명"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date",
+            "description": "retrospective-linker가 기록한 날짜"
+          },
+          "action_items": {
+            "type": "object",
+            "description": "지표별 다음 회차 개선 과제 (카테고리당 최대 3개)",
+            "additionalProperties": false,
+            "properties": {
+              "신청율": {
+                "type": "array",
+                "items": { "type": "string" },
+                "maxItems": 3
+              },
+              "참여율": {
+                "type": "array",
+                "items": { "type": "string" },
+                "maxItems": 3
+              },
+              "전환율": {
+                "type": "array",
+                "items": { "type": "string" },
+                "maxItems": 3
+              }
+            }
+          },
+          "what_worked": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "이번 회차 잘된 점 목록. 다음 기획에서 반복·강화할 전략의 근거."
+          },
+          "summary": {
+            "type": "string",
+            "description": "이번 회차 전체 흐름 한 줄 요약"
+          }
+        }
+      }
+    },
+
+    "notion_workspace": {
+      "type": "object",
+      "description": "Notion 상수. 클라이언트 CLAUDE.md에서도 선언됨.",
+      "additionalProperties": false,
+      "properties": {
+        "root_page_id": { "type": "string" },
+        "plans_page_id": { "type": "string" }
+      }
+    }
+  },
+
+  "$defs": {
+    "consent_meta": {
+      "type": "object",
+      "description": "사례·자산 사용 동의 메타데이터. case-validator가 검증.",
+      "required": ["granted", "scope"],
+      "additionalProperties": false,
+      "properties": {
+        "granted": { "type": "boolean" },
+        "scope": {
+          "type": "string",
+          "enum": ["full", "anonymized", "excerpt_only"],
+          "description": "full: 원문 그대로 / anonymized: 익명 가공 / excerpt_only: 일부 발췌만"
+        },
+        "granted_at": { "type": "string", "format": "date" },
+        "granted_by": { "type": "string", "description": "동의한 사람 식별자" }
+      }
+    }
+  }
+}
